@@ -11,3 +11,5 @@ tests/
 x_sr/ 
 debug_1.ipynb/ 
 debug_2.ipynb/
+*.h5mu
+*.npy

@@ -92,10 +92,15 @@ def prepare_pair_data(
     key_1: str,
     key_2: str,
     to_gpu: bool = False,
+    batch_indices: Optional[torch.Tensor] = None,
 ) -> Tuple[PairDataset, PairDataset]:
     """Load train/test ``.h5mu`` files and return ``PairDataset`` tuple.
 
     Parameters
+    ----------
+    batch_indices : Optional[torch.Tensor]
+        Per-cell batch labels (LongTensor of shape [n_cells]).  Only needed for
+        batch-aware strategies (CVAE, adversarial, Harmony).
     """
     train_data = mu.read_h5mu(train_data_path)
     test_data = mu.read_h5mu(test_data_path)
@@ -104,6 +109,7 @@ def prepare_pair_data(
     train_dataset = PairDataset(
         adata_to_tensor(train_data[key_1]),
         adata_to_tensor(train_data[key_2]),
+        batch_indices=batch_indices,
     )
     test_dataset = PairDataset(
         adata_to_tensor(test_data[key_1]),

@@ -42,6 +42,8 @@ class PairScratch(BaseModel):
         use_rmsnorm: bool = True,
         use_residual: bool = False,
         dropout_p: float = 0.05,
+        num_batches: int = 0,
+        batch_embed_dim: int = 0,
     ) -> None:
         super().__init__()
         self.feature_num_1 = feature_num_1
@@ -56,6 +58,8 @@ class PairScratch(BaseModel):
             use_rmsnorm=use_rmsnorm,
             use_residual=use_residual,
             dropout_p=dropout_p,
+            num_batches=num_batches,
+            batch_embed_dim=batch_embed_dim,
         )
         # Placeholder loss; final config goes through :meth:`set_loss`.
         self.loss_fn: VAEClipLoss = VAEClipLoss()
@@ -74,6 +78,13 @@ class PairScratch(BaseModel):
         bottom_k_ratio: float = 0.1,
         weight_top: float = 0.1,
         weight_bottom: float = 2.0,
+        adversarial_batch_weight: float = 0.0,
+        num_batches: int = 0,
+        discriminator_hidden_dim: int = 128,
+        batch_alignment_weight: float = 0.0,
+        alignment_n_clusters: int = 20,
+        alignment_ema_momentum: float = 0.9,
+        alignment_temperature: float = 1.0,
     ) -> None:
         self.loss_fn = VAEClipLoss(
             vae_beta_1=vae_beta_1,
@@ -87,6 +98,14 @@ class PairScratch(BaseModel):
             bottom_k_ratio=bottom_k_ratio,
             weight_top=weight_top,
             weight_bottom=weight_bottom,
+            adversarial_batch_weight=adversarial_batch_weight,
+            num_batches=num_batches,
+            discriminator_hidden_dim=discriminator_hidden_dim,
+            embed_dim=self.embed_dim,
+            batch_alignment_weight=batch_alignment_weight,
+            alignment_n_clusters=alignment_n_clusters,
+            alignment_ema_momentum=alignment_ema_momentum,
+            alignment_temperature=alignment_temperature,
         )
 
     # ------------------------------------------------------------------
@@ -136,11 +155,14 @@ class PairScratch(BaseModel):
     ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
         x1 = batch["omic_1"].to(device)
         x2 = batch["omic_2"].to(device)
+        batch_indices = batch.get("batch_idx")
+        if batch_indices is not None:
+            batch_indices = batch_indices.to(device)
         # Make sure the loss module lives on the same device.
         self.loss_fn.to(device)
-        outputs = self.net(x1, x2)
+        outputs = self.net(x1, x2, batch_indices=batch_indices)
 
-        loss_dic = self.loss_fn(x1, x2, outputs)
+        loss_dic = self.loss_fn(x1, x2, outputs, batch_indices=batch_indices)
         # Surface the clip logit_scale as a scalar for tensorboard parity.
         loss_dic["logit_scale"] = self.loss_fn.clip_loss.logit_scale.detach()
         # Flatten outputs so the Trainer's recon-detection heuristic still works.

@@ -95,6 +95,10 @@ class FeatureDecoder(nn.Module):
     hidden dim back to ``feature_num``. ``fc_blocks`` chains the intermediate
     hidden widths. Layout matches the original ``sr_net.feature_decoder`` to
     preserve checkpoint compatibility.
+
+    When ``batch_embed_dim > 0``, the first :class:`FCBlock` accepts a wider
+    input (``hidden_dims[0] + batch_embed_dim``) and :meth:`forward` expects an
+    additional ``batch_embed`` argument that is concatenated with ``z``.
     """
 
     def __init__(
@@ -104,6 +108,7 @@ class FeatureDecoder(nn.Module):
         use_rmsnorm: bool = True,
         use_residual: bool = False,
         dropout_p: float = 0.05,
+        batch_embed_dim: int = 0,
     ) -> None:
         super().__init__()
 
@@ -111,24 +116,49 @@ class FeatureDecoder(nn.Module):
             hidden_params.copy() if isinstance(hidden_params, (list, dict)) else hidden_params
         )
         self.hidden_dims = _parse_hidden_params(hidden_params)
+        self.batch_embed_dim = batch_embed_dim
 
         self.decoder_header = nn.Sequential(
             nn.Linear(self.hidden_dims[-1], feature_num),
             nn.LeakyReLU(),
         )
 
+        if batch_embed_dim > 0 and len(self.hidden_dims) >= 2:
+            # First FCBlock accepts z || batch_embed
+            first_input = self.hidden_dims[0] + batch_embed_dim
+        else:
+            first_input = self.hidden_dims[0] if self.hidden_dims else 0
+
         blocks = [
             FCBlock(
-                self.hidden_dims[i - 1],
+                first_input if i == 0 else self.hidden_dims[i - 1],
                 self.hidden_dims[i],
                 use_rmsnorm=use_rmsnorm,
                 use_residual=use_residual,
                 dropout_p=dropout_p,
             )
-            for i in range(1, len(self.hidden_dims))
+            for i in range(0, len(self.hidden_dims))
         ]
+        # If batch_embed_dim > 0 and only one hidden_dim, we still need the widened first block
+        if batch_embed_dim > 0 and len(self.hidden_dims) == 1 and not blocks:
+            blocks = [
+                FCBlock(
+                    self.hidden_dims[0] + batch_embed_dim,
+                    self.hidden_dims[0],
+                    use_rmsnorm=use_rmsnorm,
+                    use_residual=use_residual,
+                    dropout_p=dropout_p,
+                )
+            ]
         self.fc_blocks = nn.Sequential(*blocks)
 
-    def forward(self, z: torch.Tensor) -> torch.Tensor:
+    def forward(self, z: torch.Tensor, batch_embed: torch.Tensor = None) -> torch.Tensor:
+        if self.batch_embed_dim > 0:
+            if batch_embed is None:
+                raise ValueError(
+                    f"FeatureDecoder expects batch_embed (batch_embed_dim={self.batch_embed_dim}), "
+                    "but received None"
+                )
+            z = torch.cat([z, batch_embed], dim=-1)
         z = self.fc_blocks(z)
         return self.decoder_header(z)

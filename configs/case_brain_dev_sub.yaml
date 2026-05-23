@@ -1,0 +1,54 @@
+task: pair_scratch
+data:
+  batch_size: 512
+  train_data_path: /home/rsun@ZHANGroup.local/solid_recover_dev/train_sub.h5mu
+  test_data_path: /home/rsun@ZHANGroup.local/solid_recover_dev/test_sub.h5mu
+  key_1: rna_count
+  key_2: atac_count
+  to_gpu: false
+  dataset_path: null
+  test_size: 0.025
+  seed: 42
+model:
+  embed_dim: 64
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+  feature_num: null
+  hidden_params: null
+  feature_num_1: 17701
+  feature_num_2: 100000
+  hidden_params_1:
+  - 1024
+  - 256
+  hidden_params_2:
+  - 1024
+  - 256
+optimizer:
+  lr: 0.001
+  warmup_steps: 500
+  steady_1_steps: 500
+  cosine_anneal_steps: 5000
+  min_lr: 0.0001
+training:
+  project_dir: outputs/hca_brain_dev
+  train_steps: 6000
+  eval_points: 500
+  save_points: 1500
+  device: cuda
+loss:
+  beta: 1.0
+  vae_beta_1: 1.0
+  vae_beta_2: 1.0
+  clip_weight: 40.0
+  cross_recon_1: 0.75
+  cross_recon_2: 0.75
+  temperature: 0.12
+  use_weight: true
+  top_k_ratio: 0.1
+  bottom_k_ratio: 0.1
+  weight_top: 0.1
+  weight_bottom: 5.0
+ckpt:
+  omic_1: null
+  omic_2: null

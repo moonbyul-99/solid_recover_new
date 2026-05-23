@@ -1,0 +1,253 @@
+{
+  "10000": {
+    "Class": {
+      "best_resolution": 0.1,
+      "best_ari": 0.1257,
+      "best_nmi": 0.4042,
+      "ari_nmi_sum": 0.5298,
+      "all_results": [
+        {
+          "resolution": 0.1,
+          "ari": 0.1257,
+          "nmi": 0.4042
+        },
+        {
+          "resolution": 0.2,
+          "ari": 0.1011,
+          "nmi": 0.3837
+        },
+        {
+          "resolution": 0.3,
+          "ari": 0.0855,
+          "nmi": 0.3818
+        },
+        {
+          "resolution": 0.4,
+          "ari": 0.073,
+          "nmi": 0.3636
+        },
+        {
+          "resolution": 0.5,
+          "ari": 0.066,
+          "nmi": 0.3572
+        },
+        {
+          "resolution": 0.6,
+          "ari": 0.061,
+          "nmi": 0.3523
+        },
+        {
+          "resolution": 0.7,
+          "ari": 0.0572,
+          "nmi": 0.3464
+        },
+        {
+          "resolution": 0.8,
+          "ari": 0.0514,
+          "nmi": 0.3439
+        },
+        {
+          "resolution": 0.9,
+          "ari": 0.0488,
+          "nmi": 0.3387
+        },
+        {
+          "resolution": 1.0,
+          "ari": 0.0496,
+          "nmi": 0.3447
+        },
+        {
+          "resolution": 1.1,
+          "ari": 0.0466,
+          "nmi": 0.3374
+        },
+        {
+          "resolution": 1.2,
+          "ari": 0.0434,
+          "nmi": 0.3317
+        },
+        {
+          "resolution": 1.3,
+          "ari": 0.0439,
+          "nmi": 0.3333
+        },
+        {
+          "resolution": 1.4,
+          "ari": 0.0399,
+          "nmi": 0.3282
+        },
+        {
+          "resolution": 1.5,
+          "ari": 0.039,
+          "nmi": 0.3282
+        }
+      ]
+    },
+    "Subclass": {
+      "best_resolution": 0.1,
+      "best_ari": 0.2463,
+      "best_nmi": 0.5595,
+      "ari_nmi_sum": 0.8057,
+      "all_results": [
+        {
+          "resolution": 0.1,
+          "ari": 0.2463,
+          "nmi": 0.5595
+        },
+        {
+          "resolution": 0.2,
+          "ari": 0.2088,
+          "nmi": 0.5418
+        },
+        {
+          "resolution": 0.3,
+          "ari": 0.1705,
+          "nmi": 0.5316
+        },
+        {
+          "resolution": 0.4,
+          "ari": 0.1483,
+          "nmi": 0.5131
+        },
+        {
+          "resolution": 0.5,
+          "ari": 0.1347,
+          "nmi": 0.5058
+        },
+        {
+          "resolution": 0.6,
+          "ari": 0.125,
+          "nmi": 0.5008
+        },
+        {
+          "resolution": 0.7,
+          "ari": 0.1173,
+          "nmi": 0.4957
+        },
+        {
+          "resolution": 0.8,
+          "ari": 0.1052,
+          "nmi": 0.4902
+        },
+        {
+          "resolution": 0.9,
+          "ari": 0.1006,
+          "nmi": 0.4852
+        },
+        {
+          "resolution": 1.0,
+          "ari": 0.1021,
+          "nmi": 0.4942
+        },
+        {
+          "resolution": 1.1,
+          "ari": 0.0962,
+          "nmi": 0.4845
+        },
+        {
+          "resolution": 1.2,
+          "ari": 0.0904,
+          "nmi": 0.4812
+        },
+        {
+          "resolution": 1.3,
+          "ari": 0.0906,
+          "nmi": 0.4799
+        },
+        {
+          "resolution": 1.4,
+          "ari": 0.0833,
+          "nmi": 0.4756
+        },
+        {
+          "resolution": 1.5,
+          "ari": 0.0822,
+          "nmi": 0.4765
+        }
+      ]
+    },
+    "cell_type": {
+      "best_resolution": 0.1,
+      "best_ari": 0.362,
+      "best_nmi": 0.5761,
+      "ari_nmi_sum": 0.9381,
+      "all_results": [
+        {
+          "resolution": 0.1,
+          "ari": 0.362,
+          "nmi": 0.5761
+        },
+        {
+          "resolution": 0.2,
+          "ari": 0.352,
+          "nmi": 0.5685
+        },
+        {
+          "resolution": 0.3,
+          "ari": 0.311,
+          "nmi": 0.5669
+        },
+        {
+          "resolution": 0.4,
+          "ari": 0.3036,
+          "nmi": 0.5623
+        },
+        {
+          "resolution": 0.5,
+          "ari": 0.3011,
+          "nmi": 0.5677
+        },
+        {
+          "resolution": 0.6,
+          "ari": 0.3073,
+          "nmi": 0.5802
+        },
+        {
+          "resolution": 0.7,
+          "ari": 0.2788,
+          "nmi": 0.569
+        },
+        {
+          "resolution": 0.8,
+          "ari": 0.2719,
+          "nmi": 0.578
+        },
+        {
+          "resolution": 0.9,
+          "ari": 0.2698,
+          "nmi": 0.5741
+        },
+        {
+          "resolution": 1.0,
+          "ari": 0.2731,
+          "nmi": 0.5852
+        },
+        {
+          "resolution": 1.1,
+          "ari": 0.2614,
+          "nmi": 0.5765
+        },
+        {
+          "resolution": 1.2,
+          "ari": 0.2572,
+          "nmi": 0.5784
+        },
+        {
+          "resolution": 1.3,
+          "ari": 0.2552,
+          "nmi": 0.5752
+        },
+        {
+          "resolution": 1.4,
+          "ari": 0.2441,
+          "nmi": 0.5726
+        },
+        {
+          "resolution": 1.5,
+          "ari": 0.2426,
+          "nmi": 0.5758
+        }
+      ]
+    }
+  }
+}

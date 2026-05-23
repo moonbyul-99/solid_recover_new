@@ -1,0 +1,14 @@
+{
+  "10000": {
+    "Class": {
+      "best_ari": 0.35,
+      "best_nmi": 0.5,
+      "best_resolution": 0.8
+    },
+    "Subclass": {
+      "best_ari": 0.28,
+      "best_nmi": 0.42,
+      "best_resolution": 0.9
+    }
+  }
+}

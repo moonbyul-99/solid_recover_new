@@ -37,8 +37,11 @@ class SRVAE(nn.Module):
         use_rmsnorm: bool = True,
         use_residual: bool = False,
         dropout_p: float = 0.05,
+        batch_embed_dim: int = 0,
     ) -> None:
         super().__init__()
+
+        self.batch_embed_dim = batch_embed_dim
 
         self.encoder = FeatureEncoder(
             feature_num=feature_num,
@@ -63,6 +66,7 @@ class SRVAE(nn.Module):
             use_rmsnorm=use_rmsnorm,
             use_residual=use_residual,
             dropout_p=dropout_p,
+            batch_embed_dim=batch_embed_dim,
         )
         self.embed_dim = embed_dim
 
@@ -81,9 +85,9 @@ class SRVAE(nn.Module):
         z_embed = self.reparam(z_mu, z_logvar)
         return z, z_mu, z_logvar, z_embed
 
-    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def forward(self, x: torch.Tensor, batch_embed: torch.Tensor = None) -> Dict[str, torch.Tensor]:
         z, z_mu, z_logvar, z_embed = self.get_embedding(x)
-        x_recon = self.decoder(z_embed)
+        x_recon = self.decoder(z_embed, batch_embed=batch_embed)
         return {
             "z_encoder": z,
             "z_mu": z_mu,

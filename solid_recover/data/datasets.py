@@ -42,13 +42,13 @@ class SingleDataset(Dataset):
 
 
 class PairDataset(Dataset):
-    """Paired two-omic dataset yielding ``{'omic_1': ..., 'omic_2': ...}``..
-    """
+    """Paired two-omic dataset yielding ``{'omic_1': ..., 'omic_2': ...}``."""
 
     def __init__(
         self,
         omic_1: torch.Tensor,
         omic_2: torch.Tensor,
+        batch_indices: Optional[torch.Tensor] = None,
     ) -> None:
         _check_tensor(omic_1, "omic_1")
         _check_tensor(omic_2, "omic_2")
@@ -56,24 +56,21 @@ class PairDataset(Dataset):
             raise ValueError("omic_1 and omic_2 must have the same number of samples")
         self.omic_1 = omic_1
         self.omic_2 = omic_2
+        self.batch_indices = batch_indices
 
     def __len__(self) -> int:
         return self.omic_1.shape[0]
 
     def __getitem__(self, idx: int):
         item = {"omic_1": self.omic_1[idx, :], "omic_2": self.omic_2[idx, :]}
+        if self.batch_indices is not None:
+            item["batch_idx"] = self.batch_indices[idx]
         return item
 
     def to_gpu(self, device: str = "cuda") -> "PairDataset":
-        """Move both modality tensors (and optional cell_type) to ``device`` *in place*.
-
-        This is an explicit opt-in (driven by ``data.to_gpu`` in YAML) that
-        avoids the host->device copy inside the DataLoader worker loop. It
-        only makes sense when both tensors fit in GPU memory; otherwise keep
-        the default ``False`` and let :meth:`BaseModel._process_batch` move
-        per-batch. Retained from the legacy pipeline because paired
-        experiments frequently hit this fast path in practice.
-        """
+        """Move both modality tensors (and optional batch_indices) to *device* *in place*."""
         self.omic_1 = self.omic_1.to(device)
         self.omic_2 = self.omic_2.to(device)
+        if self.batch_indices is not None:
+            self.batch_indices = self.batch_indices.to(device)
         return self

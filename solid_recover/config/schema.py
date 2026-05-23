@@ -42,6 +42,8 @@ class DataConfig:
     dataset_path: Optional[str] = None
     test_size: float = 0.025
     seed: int = 42
+    # batch-aware strategies
+    num_batches: int = 0
 
 
 @dataclass
@@ -60,6 +62,8 @@ class ModelConfig:
     feature_num_2: Optional[int] = None
     hidden_params_1: Optional[HiddenParams] = None
     hidden_params_2: Optional[HiddenParams] = None
+    # CVAE
+    batch_embed_dim: int = 0
 
 
 @dataclass
@@ -102,6 +106,14 @@ class LossConfig:
     bottom_k_ratio: float = 0.1
     weight_top: float = 0.1
     weight_bottom: float = 2.0
+    # adversarial batch training
+    adversarial_batch_weight: float = 0.0
+    discriminator_hidden_dim: int = 128
+    # Harmony-inspired batch alignment
+    batch_alignment_weight: float = 0.0
+    alignment_n_clusters: int = 20
+    alignment_ema_momentum: float = 0.9
+    alignment_temperature: float = 1.0
 
 
 @dataclass

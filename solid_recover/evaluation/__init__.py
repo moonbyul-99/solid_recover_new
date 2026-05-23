@@ -1,5 +1,10 @@
 """Evaluation utilities for Solid Recover (metrics / embeddings / prediction / reporting)."""
 
+from solid_recover.evaluation.batch_metrics import (
+    compute_ari_nmi_leiden,
+    evaluate_checkpoint_batch,
+    generate_umap_plots,
+)
 from solid_recover.evaluation.embeddings import get_paired_embedding
 from solid_recover.evaluation.metrics import (
     calculate_hit_rate,
@@ -25,4 +30,7 @@ __all__ = [
     "evaluate_checkpoint",
     "evaluate_output_dir",
     "DEFAULT_HIT_KS",
+    "compute_ari_nmi_leiden",
+    "evaluate_checkpoint_batch",
+    "generate_umap_plots",
 ]
