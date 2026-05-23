@@ -1,0 +1,47 @@
+# Paired-modality fine-tune from two pretrained single-omic VAE checkpoints.
+task: pair_pretrain
+
+data:
+  train_data_path: "path/to/case_8/train.h5mu"
+  test_data_path: "path/to/case_8/test.h5mu"
+  key_1: "rna_count"
+  key_2: "peak_count"
+  batch_size: 512
+  to_gpu: false
+
+model:
+  feature_num_1: 11817
+  feature_num_2: 65401
+  hidden_params_1: [1024, 512, 256]
+  hidden_params_2: [1024, 512, 256]
+  embed_dim: 256
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+
+ckpt:
+  omic_1: "outputs/rna_pretrain_musbrain/models/ckpt_20000.pth"
+  omic_2: "outputs/ga_pretrain_musbrain/models/ckpt_20000.pth"
+
+training:
+  project_dir: "outputs/pair_pretrain_case8"
+  train_steps: 8000
+  eval_points: 80
+  save_points: 500
+  device: "cuda"
+
+optimizer:
+  lr: 5e-4
+  warmup_steps: 500
+  steady_1_steps: 1500
+  cosine_anneal_steps: 5000
+  min_lr: 5e-5
+
+loss:
+  vae_beta_1: 1.0
+  vae_beta_2: 1.0
+  clip_weight: 40.0
+  cross_recon_1: 0.8
+  cross_recon_2: 0.8
+  temperature: 0.07
+  use_weight: false

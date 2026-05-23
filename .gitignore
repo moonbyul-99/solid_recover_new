@@ -1,0 +1,13 @@
+.pytest_cache/
+examples/
+logs/
+notebooks/ 
+outputs/
+paper_figure/ 
+solid_recover.egg-info/
+sr_embed_绘图/ 
+SR_fig4/ 
+tests/ 
+x_sr/ 
+debug_1.ipynb/ 
+debug_2.ipynb/

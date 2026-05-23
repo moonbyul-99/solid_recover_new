@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "solid_recover"
+version = "0.1.0"
+description = "Solid Recover: single-cell multi-omics integration and cross-modality prediction."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Solid Recover Team" }]
+license = { text = "MIT" }
+keywords = [
+    "single-cell",
+    "multi-omics",
+    "VAE",
+    "CLIP",
+    "cross-modality",
+    "bioinformatics",
+]
+
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.22",
+    "pandas>=1.5",
+    "scipy>=1.9",
+    "scikit-learn>=1.1",
+    "tqdm>=4.64",
+    "pyyaml>=6.0",
+    "tensorboard>=2.10",
+    "anndata>=0.9",
+    "muon>=0.1.5",
+    "scanpy>=1.9",
+    "datasets>=2.10",
+    "joblib>=1.2",
+    "matplotlib>=3.6",
+    "seaborn>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1",
+    "black>=23.0",
+    "ipykernel>=6.0",
+]
+test = [
+    "pytest>=7.0",
+]
+analysis = [
+    "snapatac2>=2.0",
+    "rustworkx>=0.12",
+    "gimmemotifs>=0.16",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[project.scripts]
+solid-recover = "solid_recover.cli.main:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["solid_recover*"]
+exclude = ["notebooks*", "scripts*", "configs*", "context*", "tests*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 110
+target-version = ["py39"]

@@ -1,0 +1,47 @@
+# pair_config.yaml - 适配重构后项目的 case9 配置
+
+task: "pair_scratch"
+
+data:
+  train_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/case_8/train.h5mu"
+  test_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/case_8/test.h5mu"
+  key_1: "rna_count"
+  key_2: "peak_count"
+  batch_size: 512
+
+model:
+  feature_num_1: 11817
+  feature_num_2: 65401
+  hidden_params_1: [1024, 256]
+  hidden_params_2: [1024, 256]
+  embed_dim: 64
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+
+training:
+  project_dir: "outputs/pair_scratch_bmmc_wc"
+  train_steps: 10000
+  eval_points: 160
+  save_points: 500
+  device: "cuda"
+
+optimizer:
+  lr: 8e-4
+  warmup_steps: 1000
+  steady_1_steps: 1000
+  cosine_anneal_steps: 6000
+  min_lr: 8e-5
+
+loss:
+  vae_beta_1: 1.0
+  vae_beta_2: 1.0
+  clip_weight: 40.0
+  cross_recon_1: 0.75
+  cross_recon_2: 0.75
+  temperature: 0.12
+  use_weight: false
+  top_k_ratio: 0.1
+  bottom_k_ratio: 0.1
+  weight_top: 0.1
+  weight_bottom: 5.0

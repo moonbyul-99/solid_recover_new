@@ -1,0 +1,33 @@
+# Single-omic pretraining (VAE on RNA HuggingFace dataset).
+task: single_pretrain
+
+data:
+  dataset_path: "path/to/rna_pretrain/hf_data"
+  test_size: 0.025
+  seed: 42
+  batch_size: 2048
+
+model:
+  feature_num: 32285
+  hidden_params: [1024, 512, 256]
+  embed_dim: 256
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+
+training:
+  project_dir: "outputs/rna_pretrain_musbrain"
+  train_steps: 20000
+  eval_points: 100
+  save_points: 4000
+  device: "cuda"
+
+optimizer:
+  lr: 5e-4
+  warmup_steps: 1000
+  steady_1_steps: 3000
+  cosine_anneal_steps: 12000
+  min_lr: 5e-6
+
+loss:
+  beta: 1.0

@@ -1,0 +1,134 @@
+"""Feature encoder and decoder used by SRVAE / SRAE."""
+
+from __future__ import annotations
+
+from typing import Dict, List, Union
+
+import torch
+import torch.nn as nn
+
+from solid_recover.nn.blocks import FCBlock
+
+HiddenParams = Union[Dict[str, int], List[int]]
+
+
+def _parse_hidden_params(hidden_params: HiddenParams) -> List[int]:
+    """Normalise ``hidden_params`` into an explicit list of layer widths.
+
+    Accepts either:
+    - ``list[int]``: interpreted as explicit per-layer widths
+    - ``dict``: must contain ``hidden_dim`` and ``block_num``; expanded to a
+      flat list of repeated widths.
+    """
+    if isinstance(hidden_params, dict):
+        required = {"hidden_dim", "block_num"}
+        if not required.issubset(hidden_params.keys()):
+            raise ValueError(
+                "hidden_params is dict, must contain 'hidden_dim' and 'block_num'"
+            )
+        hidden_dim = int(hidden_params["hidden_dim"])
+        block_num = int(hidden_params["block_num"])
+        return [hidden_dim] * block_num
+    if isinstance(hidden_params, list):
+        return [int(v) for v in hidden_params]
+    raise TypeError(
+        "hidden_params must be either a dict (with 'hidden_dim', 'block_num') "
+        "or a list of ints"
+    )
+
+
+class FeatureEncoder(nn.Module):
+    """Stack of :class:`FCBlock` mapping raw features to a hidden representation.
+
+    The architecture preserves the original ``sr_net.feature_encoder`` layout so
+    that legacy checkpoints remain loadable:
+
+    - ``encoder_header``: first :class:`FCBlock` (``feature_num -> hidden_dims[0]``)
+    - ``fc_blocks``: remaining :class:`FCBlock`\\ s chained via ``nn.Sequential``
+    """
+
+    def __init__(
+        self,
+        feature_num: int,
+        hidden_params: HiddenParams,
+        use_rmsnorm: bool = True,
+        use_residual: bool = False,
+        dropout_p: float = 0.05,
+    ) -> None:
+        super().__init__()
+
+        # Keep a copy so callers / state_dict introspection can read it back.
+        self.hidden_params = (
+            hidden_params.copy() if isinstance(hidden_params, (list, dict)) else hidden_params
+        )
+        self.hidden_dims = _parse_hidden_params(hidden_params)
+
+        self.encoder_header = FCBlock(
+            input_dim=feature_num,
+            output_dim=self.hidden_dims[0],
+            use_rmsnorm=use_rmsnorm,
+            use_residual=False,
+            dropout_p=dropout_p,
+        )
+
+        blocks = [
+            FCBlock(
+                self.hidden_dims[i - 1],
+                self.hidden_dims[i],
+                use_rmsnorm=use_rmsnorm,
+                use_residual=use_residual,
+                dropout_p=dropout_p,
+            )
+            for i in range(1, len(self.hidden_dims))
+        ]
+        self.fc_blocks = nn.Sequential(*blocks)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        z = self.encoder_header(x)
+        return self.fc_blocks(z)
+
+
+class FeatureDecoder(nn.Module):
+    """Mirror of :class:`FeatureEncoder`.
+
+    The ``decoder_header`` is a ``Linear + LeakyReLU`` that projects the last
+    hidden dim back to ``feature_num``. ``fc_blocks`` chains the intermediate
+    hidden widths. Layout matches the original ``sr_net.feature_decoder`` to
+    preserve checkpoint compatibility.
+    """
+
+    def __init__(
+        self,
+        feature_num: int,
+        hidden_params: HiddenParams,
+        use_rmsnorm: bool = True,
+        use_residual: bool = False,
+        dropout_p: float = 0.05,
+    ) -> None:
+        super().__init__()
+
+        self.hidden_params = (
+            hidden_params.copy() if isinstance(hidden_params, (list, dict)) else hidden_params
+        )
+        self.hidden_dims = _parse_hidden_params(hidden_params)
+
+        self.decoder_header = nn.Sequential(
+            nn.Linear(self.hidden_dims[-1], feature_num),
+            nn.LeakyReLU(),
+        )
+
+        blocks = [
+            FCBlock(
+                self.hidden_dims[i - 1],
+                self.hidden_dims[i],
+                use_rmsnorm=use_rmsnorm,
+                use_residual=use_residual,
+                dropout_p=dropout_p,
+            )
+            for i in range(1, len(self.hidden_dims))
+        ]
+        self.fc_blocks = nn.Sequential(*blocks)
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        z = self.fc_blocks(z)
+        return self.decoder_header(z)

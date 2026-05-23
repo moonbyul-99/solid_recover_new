@@ -1,0 +1,47 @@
+# pair_config.yaml - 适配重构后项目的 hca_renal_cortex 配置
+
+task: "pair_scratch"
+
+data:
+  train_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/data_norm.h5mu"
+  test_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/data_norm.h5mu"
+  key_1: "rna_count"
+  key_2: "atac_count"
+  batch_size: 512
+
+model:
+  feature_num_1: 14577
+  feature_num_2: 101123
+  hidden_params_1: [1024, 256]
+  hidden_params_2: [1024, 256]
+  embed_dim: 64
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+
+training:
+  project_dir: "outputs/hca_renal_cortex"
+  train_steps: 10000
+  eval_points: 12000
+  save_points: 2000
+  device: "cuda"
+
+optimizer:
+  lr: 1e-3
+  warmup_steps: 1000
+  steady_1_steps: 1600
+  cosine_anneal_steps: 6000
+  min_lr: 1e-4
+
+loss:
+  vae_beta_1: 1.0
+  vae_beta_2: 1.0
+  clip_weight: 40.0
+  cross_recon_1: 0.75
+  cross_recon_2: 0.75
+  temperature: 0.12
+  use_weight: true
+  top_k_ratio: 0.1
+  bottom_k_ratio: 0.1
+  weight_top: 0.1
+  weight_bottom: 5.0
