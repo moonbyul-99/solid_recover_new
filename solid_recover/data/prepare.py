@@ -96,6 +96,17 @@ def prepare_pair_data(
     """Load train/test ``.h5mu`` files and return ``PairDataset`` tuple.
 
     Parameters
+    ----------
+    train_data_path : str
+        Path to training ``.h5mu``.
+    test_data_path : str
+        Path to test ``.h5mu``.
+    key_1 : str
+        Modality key for omic-1 (e.g. ``"rna_count"``).
+    key_2 : str
+        Modality key for omic-2 (e.g. ``"atac_count"``).
+    to_gpu : bool
+        If True, move tensors to GPU.
     """
     train_data = mu.read_h5mu(train_data_path)
     test_data = mu.read_h5mu(test_data_path)
@@ -108,6 +119,54 @@ def prepare_pair_data(
     test_dataset = PairDataset(
         adata_to_tensor(test_data[key_1]),
         adata_to_tensor(test_data[key_2]),
+    )
+
+    if to_gpu:
+        train_dataset.to_gpu()
+        test_dataset.to_gpu()
+
+    return train_dataset, test_dataset
+
+
+def prepare_pair_data_from_single(
+    data_path: str,
+    key_1: str,
+    key_2: str,
+    test_size: float = 0.1,
+    seed: int = 42,
+    to_gpu: bool = False,
+) -> Tuple[PairDataset, PairDataset]:
+    """Load a single ``.h5mu``, random-split into train/test, and return ``PairDataset`` tuples.
+
+    No QC/normalisation is performed — it is assumed the data has already been
+    preprocessed.  Random split uses a fixed seed for reproducibility.
+    """
+    rng = np.random.default_rng(seed)
+    mdata = mu.read_h5mu(data_path)
+    n = mdata.n_obs
+
+    # Random split
+    idxs = np.arange(n)
+    rng.shuffle(idxs)
+    n_test = max(1, int(n * test_size))
+    train_idx = idxs[n_test:]
+    test_idx = idxs[:n_test]
+
+    _logger.info("Auto-split: %d train / %d test (test_size=%.3f, seed=%d)",
+                 len(train_idx), len(test_idx), test_size, seed)
+
+    train_data_1 = mdata[key_1][train_idx, :]
+    test_data_1 = mdata[key_1][test_idx, :]
+    train_data_2 = mdata[key_2][train_idx, :]
+    test_data_2 = mdata[key_2][test_idx, :]
+
+    train_dataset = PairDataset(
+        adata_to_tensor(train_data_1),
+        adata_to_tensor(train_data_2),
+    )
+    test_dataset = PairDataset(
+        adata_to_tensor(test_data_1),
+        adata_to_tensor(test_data_2),
     )
 
     if to_gpu:

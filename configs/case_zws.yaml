@@ -1,0 +1,50 @@
+# zws echo 训练配置 — 单文件 auto-split 模式
+# 数据: paper_figure/zws_echo/zws_mdata.h5mu (rna_count 12597 x atac_count 121503, 83404 cells)
+
+task: "pair_scratch"
+
+data:
+  # 单文件 auto-split（二选一：data_path 或 train_data_path+test_data_path）
+  data_path: "paper_figure/zws_echo/zws_mdata.h5mu"
+  test_size: 0.1          # 10% 作为 test
+  seed: 42
+  key_1: "rna_count"
+  key_2: "atac_count"
+  batch_size: 512
+
+model:
+  feature_num_1: 12597      # rna_count 特征数
+  feature_num_2: 121503     # atac_count 特征数
+  hidden_params_1: [1024, 256]
+  hidden_params_2: [1024, 256]
+  embed_dim: 64
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+
+training:
+  project_dir: "outputs/zws_echo"
+  train_steps: 10000
+  eval_points: 500
+  save_points: 1000
+  device: "cuda"
+
+optimizer:
+  lr: 1e-3
+  warmup_steps: 1000
+  steady_1_steps: 1000
+  cosine_anneal_steps: 6000
+  min_lr: 1e-4
+
+loss:
+  vae_beta_1: 1.0
+  vae_beta_2: 1.0
+  clip_weight: 40.0
+  cross_recon_1: 0.75
+  cross_recon_2: 0.75
+  temperature: 0.12
+  use_weight: true
+  top_k_ratio: 0.1
+  bottom_k_ratio: 0.1
+  weight_top: 0.1
+  weight_bottom: 5.0

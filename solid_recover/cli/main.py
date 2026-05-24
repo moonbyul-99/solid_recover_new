@@ -70,16 +70,29 @@ def _train_single(cfg: TrainConfig, config_path: str) -> None:
 
 
 def _train_pair(cfg: TrainConfig, config_path: str, pretrain: bool) -> None:
-    from solid_recover.data.prepare import prepare_pair_data
+    from solid_recover.data.prepare import (
+        prepare_pair_data,
+        prepare_pair_data_from_single,
+    )
     from solid_recover.models.pair import PairPretrain, PairScratch
 
-    train_ds, test_ds = prepare_pair_data(
-        train_data_path=cfg.data.train_data_path,  # type: ignore[arg-type]
-        test_data_path=cfg.data.test_data_path,  # type: ignore[arg-type]
-        key_1=cfg.data.key_1,  # type: ignore[arg-type]
-        key_2=cfg.data.key_2,  # type: ignore[arg-type]
-        to_gpu=cfg.data.to_gpu,
-    )
+    if cfg.data.data_path is not None:
+        train_ds, test_ds = prepare_pair_data_from_single(
+            data_path=cfg.data.data_path,
+            key_1=cfg.data.key_1,  # type: ignore[arg-type]
+            key_2=cfg.data.key_2,  # type: ignore[arg-type]
+            test_size=cfg.data.test_size,
+            seed=cfg.data.seed,
+            to_gpu=cfg.data.to_gpu,
+        )
+    else:
+        train_ds, test_ds = prepare_pair_data(
+            train_data_path=cfg.data.train_data_path,  # type: ignore[arg-type]
+            test_data_path=cfg.data.test_data_path,  # type: ignore[arg-type]
+            key_1=cfg.data.key_1,  # type: ignore[arg-type]
+            key_2=cfg.data.key_2,  # type: ignore[arg-type]
+            to_gpu=cfg.data.to_gpu,
+        )
 
     feat_1 = cfg.model.feature_num_1 or train_ds[0]["omic_1"].shape[0]
     feat_2 = cfg.model.feature_num_2 or train_ds[0]["omic_2"].shape[0]
