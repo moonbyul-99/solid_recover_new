@@ -1,8 +1,8 @@
 task: pair_scratch
 data:
   batch_size: 512
-  train_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_brain_dev/train.h5mu"
-  test_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_brain_dev/test.h5mu"
+  train_data_path: /home/rsun@ZHANGroup.local/solid_recover_dev/train_sub.h5mu
+  test_data_path: /home/rsun@ZHANGroup.local/solid_recover_dev/test_sub.h5mu
   key_1: rna_count
   key_2: atac_count
   to_gpu: false
@@ -18,25 +18,25 @@ model:
   feature_num: null
   hidden_params: null
   feature_num_1: 17701
-  feature_num_2: 141400
+  feature_num_2: 100000
   hidden_params_1:
   - 1024
   - 256
   hidden_params_2:
   - 1024
   - 256
-  batch_embed_dim: 8
+  batch_embed_dim: 0
 optimizer:
   lr: 0.001
-  warmup_steps: 1000
-  steady_1_steps: 1000
-  cosine_anneal_steps: 6000
+  warmup_steps: 500
+  steady_1_steps: 500
+  cosine_anneal_steps: 5000
   min_lr: 0.0001
 training:
-  project_dir: outputs/hca_brain_dev_cvae_large
-  train_steps: 10000
+  project_dir: outputs/hca_brain_dev_grl
+  train_steps: 6000
   eval_points: 500
-  save_points: 1000
+  save_points: 1500
   device: cuda
 loss:
   beta: 1.0
@@ -51,7 +51,7 @@ loss:
   bottom_k_ratio: 0.1
   weight_top: 0.1
   weight_bottom: 5.0
-  adversarial_batch_weight: 0.0
+  adversarial_batch_weight: 0.01
   discriminator_hidden_dim: 128
   batch_alignment_weight: 0.0
   alignment_n_clusters: 20
