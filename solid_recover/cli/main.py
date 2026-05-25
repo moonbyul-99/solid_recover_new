@@ -72,28 +72,48 @@ def _train_single(cfg: TrainConfig, config_path: str) -> None:
 def _train_pair(cfg: TrainConfig, config_path: str, pretrain: bool) -> None:
     import torch
 
-    from solid_recover.data.prepare import prepare_pair_data
+    from solid_recover.data.prepare import (
+        prepare_pair_data,
+        prepare_pair_data_from_single,
+    )
     from solid_recover.models.pair import PairPretrain, PairScratch
 
+    # --- Determine batch_indices if batch-aware strategies are enabled ---
     batch_indices = None
     if cfg.data.num_batches > 0:
         import muon as mu
 
-        mdata = mu.read_h5mu(cfg.data.train_data_path)  # type: ignore[arg-type]
+        if cfg.data.data_path is not None:
+            data_file = cfg.data.data_path
+        else:
+            data_file = cfg.data.train_data_path  # type: ignore[arg-type]
+        mdata = mu.read_h5mu(data_file)
         sample_ids = mdata[cfg.data.key_1].obs["Sample_ID"]  # type: ignore[index,arg-type]
         unique_ids = {v: i for i, v in enumerate(sample_ids.unique())}
         batch_indices = torch.tensor(
             [unique_ids[v] for v in sample_ids], dtype=torch.long
         )
 
-    train_ds, test_ds = prepare_pair_data(
-        train_data_path=cfg.data.train_data_path,  # type: ignore[arg-type]
-        test_data_path=cfg.data.test_data_path,  # type: ignore[arg-type]
-        key_1=cfg.data.key_1,  # type: ignore[arg-type]
-        key_2=cfg.data.key_2,  # type: ignore[arg-type]
-        to_gpu=cfg.data.to_gpu,
-        batch_indices=batch_indices,
-    )
+    # --- Load data (auto-split or pre-split) ---
+    if cfg.data.data_path is not None:
+        train_ds, test_ds = prepare_pair_data_from_single(
+            data_path=cfg.data.data_path,
+            key_1=cfg.data.key_1,  # type: ignore[arg-type]
+            key_2=cfg.data.key_2,  # type: ignore[arg-type]
+            test_size=cfg.data.test_size,
+            seed=cfg.data.seed,
+            to_gpu=cfg.data.to_gpu,
+            batch_indices=batch_indices,
+        )
+    else:
+        train_ds, test_ds = prepare_pair_data(
+            train_data_path=cfg.data.train_data_path,  # type: ignore[arg-type]
+            test_data_path=cfg.data.test_data_path,  # type: ignore[arg-type]
+            key_1=cfg.data.key_1,  # type: ignore[arg-type]
+            key_2=cfg.data.key_2,  # type: ignore[arg-type]
+            to_gpu=cfg.data.to_gpu,
+            batch_indices=batch_indices,
+        )
 
     feat_1 = cfg.model.feature_num_1 or train_ds[0]["omic_1"].shape[0]
     feat_2 = cfg.model.feature_num_2 or train_ds[0]["omic_2"].shape[0]
@@ -140,13 +160,14 @@ def _train_pair(cfg: TrainConfig, config_path: str, pretrain: bool) -> None:
         bottom_k_ratio=cfg.loss.bottom_k_ratio,
         weight_top=cfg.loss.weight_top,
         weight_bottom=cfg.loss.weight_bottom,
-        adversarial_batch_weight=cfg.loss.adversarial_batch_weight,
-        num_batches=cfg.data.num_batches,
-        discriminator_hidden_dim=cfg.loss.discriminator_hidden_dim,
-        batch_alignment_weight=cfg.loss.batch_alignment_weight,
-        alignment_n_clusters=cfg.loss.alignment_n_clusters,
-        alignment_ema_momentum=cfg.loss.alignment_ema_momentum,
-        alignment_temperature=cfg.loss.alignment_temperature,
+        # --- GRL / Harmony (暂不启用) ---
+        # adversarial_batch_weight=cfg.loss.adversarial_batch_weight,
+        # num_batches=cfg.data.num_batches,
+        # discriminator_hidden_dim=cfg.loss.discriminator_hidden_dim,
+        # batch_alignment_weight=cfg.loss.batch_alignment_weight,
+        # alignment_n_clusters=cfg.loss.alignment_n_clusters,
+        # alignment_ema_momentum=cfg.loss.alignment_ema_momentum,
+        # alignment_temperature=cfg.loss.alignment_temperature,
     )
     model.configure_optimizer(
         lr=cfg.optimizer.lr,

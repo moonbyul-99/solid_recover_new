@@ -26,22 +26,28 @@ Task = Literal["single_pretrain", "pair_scratch", "pair_pretrain"]
 class DataConfig:
     """Data wiring.
 
-    Paired tasks use ``train_data_path`` / ``test_data_path`` (both ``.h5mu``);
+    Paired tasks accept either:
+
+    - Pre-split: ``train_data_path`` + ``test_data_path`` (both ``.h5mu``)
+    - Auto-split: ``data_path`` + ``test_size`` (random train/test split)
+
     single-omic pretraining uses ``dataset_path`` (HuggingFace ``datasets``
     folder) and splits it on the fly via ``test_size``.
     """
 
     batch_size: int = 128
-    # paired
+    # paired (pre-split)
     train_data_path: Optional[str] = None
     test_data_path: Optional[str] = None
+    # paired (auto-split from single file)
+    data_path: Optional[str] = None
+    test_size: float = 0.1
+    seed: int = 42
     key_1: Optional[str] = None
     key_2: Optional[str] = None
     to_gpu: bool = False
     # single
     dataset_path: Optional[str] = None
-    test_size: float = 0.025
-    seed: int = 42
     # batch-aware strategies
     num_batches: int = 0
 
@@ -106,14 +112,13 @@ class LossConfig:
     bottom_k_ratio: float = 0.1
     weight_top: float = 0.1
     weight_bottom: float = 2.0
-    # adversarial batch training
-    adversarial_batch_weight: float = 0.0
-    discriminator_hidden_dim: int = 128
-    # Harmony-inspired batch alignment
-    batch_alignment_weight: float = 0.0
-    alignment_n_clusters: int = 20
-    alignment_ema_momentum: float = 0.9
-    alignment_temperature: float = 1.0
+    # --- GRL / Harmony (暂不启用) ---
+    # adversarial_batch_weight: float = 0.0
+    # discriminator_hidden_dim: int = 128
+    # batch_alignment_weight: float = 0.0
+    # alignment_n_clusters: int = 20
+    # alignment_ema_momentum: float = 0.9
+    # alignment_temperature: float = 1.0
 
 
 @dataclass
@@ -156,19 +161,26 @@ class TrainConfig:
             if d.dataset_path is None:
                 raise ValueError("single_pretrain requires data.dataset_path")
         elif task in ("pair_scratch", "pair_pretrain"):
-            required = {
+            required_model = {
                 "model.feature_num_1": m.feature_num_1,
                 "model.feature_num_2": m.feature_num_2,
                 "model.hidden_params_1": m.hidden_params_1,
                 "model.hidden_params_2": m.hidden_params_2,
-                "data.train_data_path": d.train_data_path,
-                "data.test_data_path": d.test_data_path,
                 "data.key_1": d.key_1,
                 "data.key_2": d.key_2,
             }
-            missing = [key for key, value in required.items() if value is None]
+            missing = [key for key, value in required_model.items() if value is None]
             if missing:
                 raise ValueError(f"{task} is missing required fields: {missing}")
+
+            # data_path: either pre-split OR auto-split from single file
+            has_pre_split = d.train_data_path is not None and d.test_data_path is not None
+            has_auto_split = d.data_path is not None
+            if not has_pre_split and not has_auto_split:
+                raise ValueError(
+                    f"{task} requires either (data.train_data_path + data.test_data_path) "
+                    f"or data.data_path (for auto-split)"
+                )
             if task == "pair_pretrain":
                 if self.ckpt.omic_1 is None or self.ckpt.omic_2 is None:
                     raise ValueError(

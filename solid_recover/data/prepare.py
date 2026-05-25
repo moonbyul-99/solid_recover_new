@@ -123,6 +123,65 @@ def prepare_pair_data(
     return train_dataset, test_dataset
 
 
+def prepare_pair_data_from_single(
+    data_path: str,
+    key_1: str,
+    key_2: str,
+    test_size: float = 0.1,
+    seed: int = 42,
+    to_gpu: bool = False,
+    batch_indices: Optional[torch.Tensor] = None,
+) -> Tuple[PairDataset, PairDataset]:
+    """Load a single ``.h5mu``, random-split into train/test, and return ``PairDataset`` tuples.
+
+    No QC/normalisation is performed — it is assumed the data has already been
+    preprocessed.  Random split uses a fixed seed for reproducibility.
+
+    Parameters
+    ----------
+    batch_indices : Optional[torch.Tensor]
+        Per-cell batch labels (LongTensor of shape [n_cells]).  When provided,
+        they are split in the same way as the data.  Only needed for
+        batch-aware strategies (CVAE, adversarial, Harmony).
+    """
+    rng = np.random.default_rng(seed)
+    mdata = mu.read_h5mu(data_path)
+    n = mdata.n_obs
+
+    # Random split
+    idxs = np.arange(n)
+    rng.shuffle(idxs)
+    n_test = max(1, int(n * test_size))
+    train_idx = idxs[n_test:]
+    test_idx = idxs[:n_test]
+
+    _logger.info("Auto-split: %d train / %d test (test_size=%.3f, seed=%d)",
+                 len(train_idx), len(test_idx), test_size, seed)
+
+    train_data_1 = mdata[key_1][train_idx, :]
+    test_data_1 = mdata[key_1][test_idx, :]
+    train_data_2 = mdata[key_2][train_idx, :]
+    test_data_2 = mdata[key_2][test_idx, :]
+
+    train_batch = batch_indices[train_idx] if batch_indices is not None else None
+
+    train_dataset = PairDataset(
+        adata_to_tensor(train_data_1),
+        adata_to_tensor(train_data_2),
+        batch_indices=train_batch,
+    )
+    test_dataset = PairDataset(
+        adata_to_tensor(test_data_1),
+        adata_to_tensor(test_data_2),
+    )
+
+    if to_gpu:
+        train_dataset.to_gpu()
+        test_dataset.to_gpu()
+
+    return train_dataset, test_dataset
+
+
 def prepare_pair_test_only(
     test_data_path: str,
     key_1: str,

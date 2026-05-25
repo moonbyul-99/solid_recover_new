@@ -78,13 +78,14 @@ class PairScratch(BaseModel):
         bottom_k_ratio: float = 0.1,
         weight_top: float = 0.1,
         weight_bottom: float = 2.0,
-        adversarial_batch_weight: float = 0.0,
-        num_batches: int = 0,
-        discriminator_hidden_dim: int = 128,
-        batch_alignment_weight: float = 0.0,
-        alignment_n_clusters: int = 20,
-        alignment_ema_momentum: float = 0.9,
-        alignment_temperature: float = 1.0,
+        # --- GRL / Harmony (暂不启用) ---
+        # adversarial_batch_weight: float = 0.0,
+        # num_batches: int = 0,
+        # discriminator_hidden_dim: int = 128,
+        # batch_alignment_weight: float = 0.0,
+        # alignment_n_clusters: int = 20,
+        # alignment_ema_momentum: float = 0.9,
+        # alignment_temperature: float = 1.0,
     ) -> None:
         self.loss_fn = VAEClipLoss(
             vae_beta_1=vae_beta_1,
@@ -98,14 +99,15 @@ class PairScratch(BaseModel):
             bottom_k_ratio=bottom_k_ratio,
             weight_top=weight_top,
             weight_bottom=weight_bottom,
-            adversarial_batch_weight=adversarial_batch_weight,
-            num_batches=num_batches,
-            discriminator_hidden_dim=discriminator_hidden_dim,
-            embed_dim=self.embed_dim,
-            batch_alignment_weight=batch_alignment_weight,
-            alignment_n_clusters=alignment_n_clusters,
-            alignment_ema_momentum=alignment_ema_momentum,
-            alignment_temperature=alignment_temperature,
+            # --- GRL / Harmony (暂不启用) ---
+            # adversarial_batch_weight=adversarial_batch_weight,
+            # num_batches=num_batches,
+            # discriminator_hidden_dim=discriminator_hidden_dim,
+            # embed_dim=self.embed_dim,
+            # batch_alignment_weight=batch_alignment_weight,
+            # alignment_n_clusters=alignment_n_clusters,
+            # alignment_ema_momentum=alignment_ema_momentum,
+            # alignment_temperature=alignment_temperature,
         )
 
     # ------------------------------------------------------------------
