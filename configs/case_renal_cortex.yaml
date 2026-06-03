@@ -1,12 +1,12 @@
-# pair_config.yaml - 适配重构后项目的 hca_renal_cortex 配置
+# pair_config.yaml - 适配重构后项目的 mus_kidney_sex 配置
 
 task: "pair_scratch"
 
 data:
-  train_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/data_norm.h5mu"
-  test_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/data_norm.h5mu"
+  train_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/train.h5mu"
+  test_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/test.h5mu"
   key_1: "rna_count"
-  key_2: "atac_count"
+  key_2: "peak_count"
   batch_size: 512
 
 model:
@@ -21,22 +21,22 @@ model:
 
 training:
   project_dir: "outputs/hca_renal_cortex"
-  train_steps: 10000
-  eval_points: 12000
-  save_points: 2000
+  train_steps: 6000
+  eval_points: 200
+  save_points: 500
   device: "cuda"
 
 optimizer:
   lr: 1e-3
-  warmup_steps: 1000
-  steady_1_steps: 1600
-  cosine_anneal_steps: 6000
+  warmup_steps: 500
+  steady_1_steps: 500
+  cosine_anneal_steps: 5000
   min_lr: 1e-4
 
 loss:
   vae_beta_1: 1.0
   vae_beta_2: 1.0
-  clip_weight: 40.0
+  clip_weight: 20.0
   cross_recon_1: 0.75
   cross_recon_2: 0.75
   temperature: 0.12
@@ -44,4 +44,4 @@ loss:
   top_k_ratio: 0.1
   bottom_k_ratio: 0.1
   weight_top: 0.1
-  weight_bottom: 5.0
+  weight_bottom: 2.0
