@@ -25,9 +25,9 @@ pretrain_rna:
   train_steps: 4000
   eval_points: 200
   save_points: 4000
-  batch_size: 512
+  batch_size: 256
   lr: 1e-3
-  warmup_steps: 4000
+  warmup_steps: 400
   steady_1_steps: 0
   cosine_anneal_steps: 3600
   min_lr: 1e-4
@@ -38,7 +38,7 @@ pretrain_atac:
   train_steps: 4000
   eval_points: 200
   save_points: 4000
-  batch_size: 512
+  batch_size: 256
   lr: 1e-3
   warmup_steps: 400
   steady_1_steps: 0
@@ -54,21 +54,21 @@ training:
   device: "cuda"
 
 optimizer:
-  lr: 3e-4
+  lr: 2e-4
   warmup_steps: 500
   steady_1_steps: 500
   cosine_anneal_steps: 5000
-  min_lr: 1e-4
+  min_lr: 5e-5
 
 loss:
   vae_beta_1: 1.0
   vae_beta_2: 1.0
-  clip_weight: 40.0
+  clip_weight: 20.0
   cross_recon_1: 0.75
   cross_recon_2: 0.75
   temperature: 0.12
   use_weight: true
   top_k_ratio: 0.1
-  bottom_k_ratio: 0.1
+  bottom_k_ratio: 0.02
   weight_top: 0.1
   weight_bottom: 2.0

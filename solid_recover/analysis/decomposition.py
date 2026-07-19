@@ -10,19 +10,19 @@ The core idea: X ≈ Z W^T, where
 - Z: (n_cells, n_latent_dims) learned embedding
 - W: (n_features, n_latent_dims) weight matrix to be estimated
 
-By fitting each feature independently against Z with sparsity constraints
-(L1 regularization), we obtain an interpretable weight matrix that reveals
-which latent programs drive each gene/peak's expression.
+By fitting all features against Z with sparsity constraints
+(L1 regularization) in batch form, we obtain an interpretable weight
+matrix that reveals which latent programs drive each gene/peak's
+expression.
 """
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import ElasticNet
-from tqdm import tqdm
 
 
 def decompose_latent_to_features(
@@ -33,13 +33,14 @@ def decompose_latent_to_features(
     l1_ratio: float = 0.9,
     fit_intercept: bool = False,
     tol: float = 1e-6,
-    progress: bool = True,
 ) -> pd.DataFrame:
     """Decompose feature matrix into latent space via ElasticNet.
 
-    For each feature (gene/peak), fit an ElasticNet model against the latent
-    embeddings to obtain interpretable weights. This reveals which latent
+    Fit all features (genes/peaks) against the latent embeddings in batch
+    form to obtain interpretable weights. This reveals which latent
     dimensions contribute most to each feature's variation.
+    
+    min ||X - WZ||^2 + \alpha * l1_ration ||W||_1 + 0.5*\alpha(1-l1_ratio) * ||W||^{2}
 
     Parameters
     ----------
@@ -60,8 +61,6 @@ def decompose_latent_to_features(
         Whether to fit an intercept term. Usually False for centered data.
     tol : float, default=1e-6
         Tolerance for optimization convergence.
-    progress : bool, default=True
-        Whether to show a progress bar during fitting.
 
     Returns
     -------
@@ -107,23 +106,17 @@ def decompose_latent_to_features(
     X = X.astype(np.float64)
     Z = Z.astype(np.float64)
 
-    # Fit ElasticNet for each feature
-    weight_matrix = np.zeros((n_features, n_latent), dtype=np.float64)
-
-    iterator = range(n_features)
-    if progress:
-        iterator = tqdm(iterator, desc="Fitting ElasticNet", leave=False)
-
-    for i in iterator:
-        model = ElasticNet(
-            alpha=alpha,
-            l1_ratio=l1_ratio,
-            fit_intercept=fit_intercept,
-            tol=tol,
-            max_iter=10000,
-        )
-        model.fit(Z, X[:, i])
-        weight_matrix[i, :] = model.coef_
+    # Fit ElasticNet in matrix form (equivalent to per-feature loop,
+    # but leverages sklearn's internal batch optimization)
+    model = ElasticNet(
+        alpha=alpha,
+        l1_ratio=l1_ratio,
+        fit_intercept=fit_intercept,
+        tol=tol,
+        max_iter=10000,
+    )
+    model.fit(Z, X)  # X: (n_cells, n_features) -> coef_: (n_features, n_latent)
+    weight_matrix = model.coef_
 
     # Create labeled DataFrame
     column_names = [f"latent_{i+1}" for i in range(n_latent)]
