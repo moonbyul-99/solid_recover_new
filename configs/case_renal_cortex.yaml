@@ -3,11 +3,12 @@
 task: "pair_scratch"
 
 data:
-  train_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/train.h5mu"
-  test_data_path: "/home/rsun@ZHANGroup.local/solid-recover/data/multi_omics/hca_renal_cortex/test.h5mu"
+  train_data_path: "/home/rsun@ZHANGroup.local/solid_recover_main/paper_figure/hca_renal_cortex/train.h5mu"
+  test_data_path: "/home/rsun@ZHANGroup.local/solid_recover_main/paper_figure/hca_renal_cortex/test.h5mu"
   key_1: "rna_count"
   key_2: "peak_count"
   batch_size: 512
+  to_gpu: true     
 
 model:
   feature_num_1: 14577
@@ -20,7 +21,7 @@ model:
   dropout_p: 0.0
 
 training:
-  project_dir: "outputs/hca_renal_cortex"
+  project_dir: "outputs/hca_renal_cortex_pseudo_pir"
   train_steps: 6000
   eval_points: 200
   save_points: 500
@@ -28,7 +29,7 @@ training:
 
 optimizer:
   lr: 1e-3
-  warmup_steps: 500
+  warmup_steps: 100
   steady_1_steps: 500
   cosine_anneal_steps: 5000
   min_lr: 1e-4
@@ -44,4 +45,4 @@ loss:
   top_k_ratio: 0.1
   bottom_k_ratio: 0.1
   weight_top: 0.1
-  weight_bottom: 2.0
+  weight_bottom: 5.0

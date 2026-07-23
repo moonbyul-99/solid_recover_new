@@ -1,0 +1,54 @@
+# Stage 1: Temperature sweep - t=0.12 (baseline reproduction with to_gpu)
+# This is the exact pretrain_v2 config with to_gpu enabled.
+# Serves as a control to verify to_gpu doesn't change results.
+
+task: pair_pretrain
+
+data:
+  train_data_path: "/home/rsun@ZHANGroup.local/solid_recover_main/paper_figure/hca_renal_cortex/train.h5mu"
+  test_data_path: "/home/rsun@ZHANGroup.local/solid_recover_main/paper_figure/hca_renal_cortex/test.h5mu"
+  key_1: rna_count
+  key_2: peak_count
+  batch_size: 512
+  to_gpu: true
+
+model:
+  feature_num_1: 14577
+  feature_num_2: 101123
+  hidden_params_1: [1024, 256]
+  hidden_params_2: [1024, 256]
+  embed_dim: 64
+  use_rmsnorm: true
+  use_residual: true
+  dropout_p: 0.0
+
+training:
+  project_dir: "outputs/hca_renal_cortex_pretrain_t012"
+  train_steps: 6000
+  eval_points: 200
+  save_points: 500
+  device: "cuda"
+
+optimizer:
+  lr: 2e-4
+  warmup_steps: 500
+  steady_1_steps: 500
+  cosine_anneal_steps: 5000
+  min_lr: 5e-5
+
+loss:
+  vae_beta_1: 1.0
+  vae_beta_2: 1.0
+  clip_weight: 20.0
+  cross_recon_1: 0.75
+  cross_recon_2: 0.75
+  temperature: 0.12
+  use_weight: true
+  top_k_ratio: 0.1
+  bottom_k_ratio: 0.02
+  weight_top: 0.1
+  weight_bottom: 5.0
+
+ckpt:
+  omic_1: "/home/rsun@ZHANGroup.local/solid_recover_main/outputs/hca_renal_cortex_pretrain_pair_v2/rna_pretrain/models/ckpt_4000.pth"
+  omic_2: "/home/rsun@ZHANGroup.local/solid_recover_main/outputs/hca_renal_cortex_pretrain_pair_v2/atac_pretrain/models/ckpt_4000.pth"

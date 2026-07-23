@@ -119,16 +119,31 @@ class Trainer:
     # ------------------------------------------------------------------
     @torch.no_grad()
     def evaluate(self, step: int) -> Dict[str, float]:
-        """Run one pass over ``test_loader`` and log scalar means to tensorboard."""
+        """Run one pass over ``test_loader`` and log scalar means to tensorboard.
+
+        If the ``process_batch`` callback returns ``z_mu_1`` / ``z_mu_2``
+        in its outputs dict, this method also computes ``top_1_hit`` (bidirectional
+        nearest-neighbour hit rate, cosine distance) and logs it as
+        ``top_1_hit/val``.  The metric and embedding source match the official
+        ``eval.sh`` → ``evaluate_checkpoint`` pipeline.
+        """
         if self.test_loader is None:
             return {}
 
         device = self.config.device
         total = 0
         accum: Dict[str, float] = {}
+        z1_list = []
+        z2_list = []
 
         for batch in self.test_loader:
             outputs, loss_dic = self.process_batch(batch, device)
+
+            # Collect per-modality latent means (z_mu) for hit-rate.
+            # Uses z_mu + cosine to match the official eval pipeline.
+            if "z_mu_1" in outputs and "z_mu_2" in outputs:
+                z1_list.append(outputs["z_mu_1"].cpu().numpy())
+                z2_list.append(outputs["z_mu_2"].cpu().numpy())
 
             # Batch size is pulled from any recon output (same heuristic as legacy).
             b = 0
@@ -150,6 +165,18 @@ class Trainer:
         means = {key: value / max(total, 1) for key, value in accum.items()}
         for key, value in means.items():
             self._writer.add_scalar(key, value, step)
+
+        # Compute top_1_hit if per-sample embeddings are available.
+        if z1_list:
+            import numpy as np
+            from solid_recover.evaluation.metrics import calculate_hit_rate
+
+            z1_all = np.concatenate(z1_list, axis=0)
+            z2_all = np.concatenate(z2_list, axis=0)
+            top1 = calculate_hit_rate(z1_all, z2_all, k=1, metric="cosine")
+            self._writer.add_scalar("top_1_hit/val", top1, step)
+            means["top_1_hit/val"] = top1
+
         return means
 
     # ------------------------------------------------------------------

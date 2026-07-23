@@ -149,6 +149,10 @@ class PairScratch(BaseModel):
             "x2_recon": outputs["x2"]["x_recon"],
             "x1_cross_recon": outputs["x1"]["cross_recon"],
             "x2_cross_recon": outputs["x2"]["cross_recon"],
+            # Expose z_mu (clean latent mean) for hit-rate evaluation,
+            # matching the official eval.sh → get_paired_embedding pipeline.
+            "z_mu_1": outputs["x1"]["z_mu"],
+            "z_mu_2": outputs["x2"]["z_mu"],
         }
         return flat_outputs, loss_dic
 
