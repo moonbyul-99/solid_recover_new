@@ -144,11 +144,14 @@ class PairScratch(BaseModel):
         # Surface the clip logit_scale as a scalar for tensorboard parity.
         loss_dic["logit_scale"] = self.loss_fn.clip_loss.logit_scale.detach()
         # Flatten outputs so the Trainer's recon-detection heuristic still works.
+        # Also expose latent means for hit-rate evaluation during training.
         flat_outputs = {
             "x1_recon": outputs["x1"]["x_recon"],
             "x2_recon": outputs["x2"]["x_recon"],
             "x1_cross_recon": outputs["x1"]["cross_recon"],
             "x2_cross_recon": outputs["x2"]["cross_recon"],
+            "z_mu_1": outputs["x1"]["z_mu"],
+            "z_mu_2": outputs["x2"]["z_mu"],
         }
         return flat_outputs, loss_dic
 

@@ -18,7 +18,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch.utils.data import DataLoader
@@ -126,6 +126,8 @@ class Trainer:
         device = self.config.device
         total = 0
         accum: Dict[str, float] = {}
+        z1_list: List[torch.Tensor] = []
+        z2_list: List[torch.Tensor] = []
 
         for batch in self.test_loader:
             outputs, loss_dic = self.process_batch(batch, device)
@@ -147,9 +149,25 @@ class Trainer:
                 if "loss" in key:
                     accum[f"{key}/val"] = accum.get(f"{key}/val", 0.0) + value.item() * b
 
+            # Collect latent embeddings for hit-rate calculation.
+            if "z_mu_1" in outputs and "z_mu_2" in outputs:
+                z1_list.append(outputs["z_mu_1"].detach())
+                z2_list.append(outputs["z_mu_2"].detach())
+
         means = {key: value / max(total, 1) for key, value in accum.items()}
         for key, value in means.items():
             self._writer.add_scalar(key, value, step)
+
+        # --- Hit-rate evaluation (delegated to metrics.calculate_hit_rate) ---
+        if z1_list and z2_list:
+            from solid_recover.evaluation.metrics import calculate_hit_rate  # lazy import: avoids circular dependency
+
+            z1_np = torch.cat(z1_list, dim=0).cpu().numpy()
+            z2_np = torch.cat(z2_list, dim=0).cpu().numpy()
+            top_1_hit = calculate_hit_rate(z1_np, z2_np, k=1, metric="cosine")
+            self._writer.add_scalar("top_1_hit/val", top_1_hit, step)
+            means["top_1_hit/val"] = top_1_hit
+
         return means
 
     # ------------------------------------------------------------------

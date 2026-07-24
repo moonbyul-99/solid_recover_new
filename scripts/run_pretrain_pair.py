@@ -72,6 +72,32 @@ def find_final_ckpt(models_dir: str) -> Optional[str]:
     return sorted(ckpts, key=_step)[-1]
 
 
+def find_pair_output_dir(base_project_dir: str) -> Optional[str]:
+    """Find the actual pair-training output directory.
+
+    The trainer may append a timestamp suffix to ``base_project_dir``.
+    Returns the path of the directory that contains ``config.yaml``
+    (preferring the most recent if multiple matches exist).
+    """
+    # 1) exact match
+    if os.path.isfile(os.path.join(base_project_dir, "config.yaml")):
+        return base_project_dir
+    # 2) timestamped variants
+    parent = os.path.dirname(base_project_dir)
+    prefix = os.path.basename(base_project_dir)
+    if not os.path.isdir(parent):
+        return None
+    candidates = []
+    for name in os.listdir(parent):
+        full = os.path.join(parent, name)
+        if name.startswith(prefix) and os.path.isdir(full) and os.path.isfile(os.path.join(full, "config.yaml")):
+            candidates.append(full)
+    if not candidates:
+        return None
+    # return the most recently modified
+    return max(candidates, key=os.path.getmtime)
+
+
 # ---------------------------------------------------------------------------
 # single-omics pretraining
 # ---------------------------------------------------------------------------
@@ -318,6 +344,15 @@ def main() -> int:
     # ---- 收尾 ----
     if exit_code == 0:
         log("配对训练完成 ✅")
+        # 保存完整配置（含 pretrain_* 段落）到输出目录
+        pair_output_dir = find_pair_output_dir(cfg["training"]["project_dir"])
+        if pair_output_dir is not None:
+            config_all_path = os.path.join(pair_output_dir, "config_all.yaml")
+            with open(config_all_path, "w") as f:
+                yaml.dump(cfg, f, default_flow_style=False, sort_keys=False)
+            log(f"完整配置已保存: {config_all_path}")
+        else:
+            log("⚠ 未找到配对训练输出目录，跳过 config_all.yaml 保存")
     else:
         log(f"配对训练失败，退出码: {exit_code}")
 
