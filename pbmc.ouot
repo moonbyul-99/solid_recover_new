@@ -1,0 +1,5 @@
+nohup: ignoring input
+启动 PBMC 三策略消融实验: strategies=aug_pt,scratch,train_pt seeds=0,7,42
+日志: logs/case11_strategy_ablation.out
+已后台启动 (PID: 3863076)
+查看进度: tail -f logs/case11_strategy_ablation.out

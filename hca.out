@@ -1,0 +1,5 @@
+nohup: ignoring input
+启动 HCA renal cortex 训练策略消融实验: strategies=aug_pt,scratch,train_pt seeds=0
+日志: logs/hca_renal_cortex_strategy_ablation.out
+已后台启动 (PID: 3903299)
+查看进度: tail -f logs/hca_renal_cortex_strategy_ablation.out
